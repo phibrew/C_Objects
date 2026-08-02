@@ -30,6 +30,7 @@ static MunitResult name(const MunitParameter params[], void* data) { \
 #define assert_int_equal(a, b, msg) munit_assert_int(a, ==, b)
 #define assert_null(ptr, msg) munit_assert_null(ptr)
 #define assert_ptr_not_equal(a, b, msg) munit_assert_ptr_not_equal(a, b)
+#define assert_ptr(a, op, b, msg) munit_assert_ptr(a, op, b)
 
 #define assert_float(a, op, b, msg) munit_assert_double(a, op, b)
 #define assert_float_equal(a, b, msg) munit_assert_double_equal(a, ==, b)

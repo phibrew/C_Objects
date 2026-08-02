@@ -4,37 +4,78 @@
 
 size_t _boot_allocated_bytes = 0;
 
-munit_case(RUN, test_str_copied, {
-  char *input = "Hello";
-  snek_object_t *obj = new_snek_string(input);
+munit_case(RUN, test_returns_null, {
+  snek_object_t *vec = new_snek_vector3(NULL, NULL, NULL);
 
-  assert_int(obj->kind, ==, STRING, "Must be a string!");
+  assert_null(vec, "Should return null when input is null");
 
-  // Should not have pointers be the same, otherwise we didn't copy the value.
-  assert_ptr_not_equal(obj->data.v_string, input,
-                       "You need to copy the string.");
+  assert(boot_all_freed());
+});
 
-  // But should have the same data!
-  //  This way the object can free it's own memory later.
-  assert_string_equal(obj->data.v_string, input,
-                      "Should copy string correctly");
+munit_case(RUN, test_vec_multiple_objects, {
+  snek_object_t *x = new_snek_integer(1);
+  snek_object_t *y = new_snek_integer(2);
+  snek_object_t *z = new_snek_integer(3);
+  snek_object_t *vec = new_snek_vector3(x, y, z);
 
-  // Should allocate memory for the string with null terminator.
-  assert_int_equal(boot_alloc_size(), 22, "Must allocate memory for string");
+  assert_ptr_not_null(vec, "should allocate a new object");
 
-  // Free the string, and then free the object.
-  free(obj->data.v_string);
-  free(obj);
+  // Vectors should not copy objects, they get the reference to the objects.
+  assert_ptr(x, ==, vec->data.v_vector3.x, "should reference x");
+  assert_ptr(y, ==, vec->data.v_vector3.y, "should reference y");
+  assert_ptr(z, ==, vec->data.v_vector3.z, "should reference z");
+
+  // Assert we have integer values correct
+  assert_int(vec->data.v_vector3.x->data.v_int, ==, 1, "should have correct x");
+  assert_int(vec->data.v_vector3.y->data.v_int, ==, 2, "should have correct y");
+  assert_int(vec->data.v_vector3.z->data.v_int, ==, 3, "should have correct z");
+
+  // Free all of our objects.
+  free(x);
+  free(y);
+  free(z);
+  free(vec);
+  assert(boot_all_freed());
+});
+
+munit_case(SUBMIT, test_vec_same_object, {
+  snek_object_t *i = new_snek_integer(1);
+  snek_object_t *vec = new_snek_vector3(i, i, i);
+
+  assert_ptr_not_null(vec, "should allocate a new object");
+
+  // Vectors should not copy objects, they get the reference to the objects.
+  assert_ptr(i, ==, vec->data.v_vector3.x, "should reference x");
+  assert_ptr(i, ==, vec->data.v_vector3.y, "should reference y");
+  assert_ptr(i, ==, vec->data.v_vector3.z, "should reference z");
+
+  // Assert we have integer values correct
+  assert_int(vec->data.v_vector3.x->data.v_int, ==, 1, "should have correct x");
+  assert_int(vec->data.v_vector3.y->data.v_int, ==, 1, "should have correct y");
+  assert_int(vec->data.v_vector3.z->data.v_int, ==, 1, "should have correct z");
+
+  i->data.v_int = 2;
+
+  // Assert we have integer values correct, after update
+  assert_int(vec->data.v_vector3.x->data.v_int, ==, 2, "should have correct x");
+  assert_int(vec->data.v_vector3.y->data.v_int, ==, 2, "should have correct y");
+  assert_int(vec->data.v_vector3.z->data.v_int, ==, 2, "should have correct z");
+
+  // Free all of our objects.
+  free(i);
+  free(vec);
   assert(boot_all_freed());
 });
 
 int main() {
   MunitTest tests[] = {
-      munit_test("/copies_value", test_str_copied),
+      munit_test("/returns_null", test_returns_null),
+      munit_test("/multiple_objects", test_vec_multiple_objects),
+      munit_test("/same_object", test_vec_same_object),
       munit_null_test,
   };
 
-  MunitSuite suite = munit_suite("object-string", tests);
+  MunitSuite suite = munit_suite("object-vector", tests);
 
   return munit_suite_main(&suite, NULL, 0, NULL);
 }
