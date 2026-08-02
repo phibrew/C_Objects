@@ -66,3 +66,12 @@ snek_object_t *new_snek_array(size_t size){
 
 	return array_object;
 }
+
+bool snek_array_set(snek_object_t *array, size_t index, snek_object_t *value){
+	if(!array || !value) return false;
+	if(array->kind != ARRAY) return false;
+	if(index >= array->data.v_array.size) return false;
+
+	array->data.v_array.elements[index] = value;
+	return true;
+}
