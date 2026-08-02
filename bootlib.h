@@ -29,7 +29,41 @@ static MunitResult name(const MunitParameter params[], void* data) { \
 #define assert_size(a, op, b, msg) munit_assert_size(a, op, b)
 #define assert_int_equal(a, b, msg) munit_assert_int(a, ==, b)
 #define assert_null(ptr, msg) munit_assert_null(ptr)
+
+#define assert_float(a, op, b, msg) munit_assert_double(a, op, b)
+#define assert_float_equal(a, b, msg) munit_assert_double(a, ==, b)
 // Translates the Boot.dev suite builder
 #define munit_suite(name, tests) { (char*)name, tests, NULL, 1, MUNIT_SUITE_OPTION_NONE }
 
+
+extern size_t _boot_allocated_bytes;
+
+static inline void *boot_malloc(size_t size){
+    void *ptr = malloc(size + sizeof(size_t));
+    if(!ptr) return NULL;
+
+    *(size_t*)ptr = size;
+    _boot_allocated_bytes += size;
+
+    return (char*)ptr + sizeof(size_t*);
+}
+
+static inline void boot_free(void *ptr){
+    if(!ptr) return;
+    void *real_ptr = (char*)ptr - sizeof(size_t);
+
+    _boot_allocated_bytes -= *(size_t*)real_ptr;
+    free(real_ptr);
+}
+
+static inline bool boot_all_freed() {
+    return _boot_allocated_bytes == 0;
+}
+
+static inline int boot_alloc_size() {
+    return (int)_boot_allocated_bytes;
+}
+
+#define malloc boot_malloc
+#define free boot_free
 #endif

@@ -2,29 +2,34 @@
 #include "munit.h"
 #include "cobject.h"
 
-munit_case(RUN, test_positive, {
-  snek_object_t *int_object = new_snek_integer(42);
-  assert_int(int_object->data.v_int, ==, 42, "must allow positive numbers");
+size_t _boot_allocated_bytes = 0;
 
-  free(int_object);
+munit_case(RUN, test_positive, {
+  snek_object_t *obj = new_snek_float(42);
+  assert_float(obj->data.v_float, ==, 42, "Must accept positive values");
+
+  free(obj);
+  assert(boot_all_freed());
 });
 
-munit_case(RUN, test_zero, {
-  snek_object_t *int_object = new_snek_integer(0);
+munit_case(SUBMIT, test_zero, {
+  snek_object_t *obj = new_snek_float(0.0);
 
-  assert_int(int_object->kind, ==, INTEGER, "must be INTEGER type");
-  assert_int(int_object->data.v_int, ==, 0, "must equal zero");
+  assert_float(obj->kind, ==, FLOAT, "Must set type to FLOAT");
+  assert_float(obj->data.v_float, ==, 0.0, "Must accept 0.0");
 
-  free(int_object);
+  free(obj);
+  assert(boot_all_freed());
 });
 
 munit_case(SUBMIT, test_negative, {
-  snek_object_t *int_object = new_snek_integer(-5);
+  snek_object_t *obj = new_snek_float(-5.0);
 
-  assert_int(int_object->kind, ==, INTEGER, "must be INTEGER type");
-  assert_int(int_object->data.v_int, ==, -5, "must allow negative numbers");
+  assert_float(obj->kind, ==, FLOAT, "Must set type to FLOAT");
+  assert_float(obj->data.v_float, ==, -5.0, "Must accept negative numbers");
 
-  free(int_object);
+  free(obj);
+  assert(boot_all_freed());
 });
 
 int main() {
@@ -35,7 +40,7 @@ int main() {
       munit_null_test,
   };
 
-  MunitSuite suite = munit_suite("object-integer", tests);
+  MunitSuite suite = munit_suite("object-float", tests);
 
   return munit_suite_main(&suite, NULL, 0, NULL);
 }
