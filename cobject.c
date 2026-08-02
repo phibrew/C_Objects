@@ -1,5 +1,6 @@
 #include "cobject.h"
 #include <stdlib.h>
+#include <string.h>
 #include "bootlib.h"
 
 snek_object_t *new_snek_integer(int value) {
@@ -19,3 +20,21 @@ snek_object_t *new_snek_float(float value){
 	float_object->data.v_float = value;
 	return float_object;
 }	
+
+snek_object_t *new_snek_string(char *value){
+	snek_object_t *string_object = malloc(sizeof(snek_object_t));
+	if(!string_object) return NULL;
+
+	size_t len = strlen(value);
+	char* new_val = malloc(len + 1);
+	if(!new_val){	
+		free(string_object);
+		return NULL;
+	}
+
+	strcpy(new_val, value);
+	string_object->kind = STRING;
+	string_object->data.v_string = new_val;
+
+	return string_object;
+}

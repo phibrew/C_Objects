@@ -29,9 +29,11 @@ static MunitResult name(const MunitParameter params[], void* data) { \
 #define assert_size(a, op, b, msg) munit_assert_size(a, op, b)
 #define assert_int_equal(a, b, msg) munit_assert_int(a, ==, b)
 #define assert_null(ptr, msg) munit_assert_null(ptr)
+#define assert_ptr_not_equal(a, b, msg) munit_assert_ptr_not_equal(a, b)
 
 #define assert_float(a, op, b, msg) munit_assert_double(a, op, b)
-#define assert_float_equal(a, b, msg) munit_assert_double(a, ==, b)
+#define assert_float_equal(a, b, msg) munit_assert_double_equal(a, ==, b)
+#define assert_string_equal(a, b, msg) munit_assert_string_equal(a, b)
 // Translates the Boot.dev suite builder
 #define munit_suite(name, tests) { (char*)name, tests, NULL, 1, MUNIT_SUITE_OPTION_NONE }
 
@@ -45,7 +47,7 @@ static inline void *boot_malloc(size_t size){
     *(size_t*)ptr = size;
     _boot_allocated_bytes += size;
 
-    return (char*)ptr + sizeof(size_t*);
+    return (char*)ptr + sizeof(size_t);
 }
 
 static inline void boot_free(void *ptr){

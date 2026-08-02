@@ -4,43 +4,37 @@
 
 size_t _boot_allocated_bytes = 0;
 
-munit_case(RUN, test_positive, {
-  snek_object_t *obj = new_snek_float(42);
-  assert_float(obj->data.v_float, ==, 42, "Must accept positive values");
+munit_case(RUN, test_str_copied, {
+  char *input = "Hello";
+  snek_object_t *obj = new_snek_string(input);
 
-  free(obj);
-  assert(boot_all_freed());
-});
+  assert_int(obj->kind, ==, STRING, "Must be a string!");
 
-munit_case(SUBMIT, test_zero, {
-  snek_object_t *obj = new_snek_float(0.0);
+  // Should not have pointers be the same, otherwise we didn't copy the value.
+  assert_ptr_not_equal(obj->data.v_string, input,
+                       "You need to copy the string.");
 
-  assert_float(obj->kind, ==, FLOAT, "Must set type to FLOAT");
-  assert_float(obj->data.v_float, ==, 0.0, "Must accept 0.0");
+  // But should have the same data!
+  //  This way the object can free it's own memory later.
+  assert_string_equal(obj->data.v_string, input,
+                      "Should copy string correctly");
 
-  free(obj);
-  assert(boot_all_freed());
-});
+  // Should allocate memory for the string with null terminator.
+  assert_int_equal(boot_alloc_size(), 22, "Must allocate memory for string");
 
-munit_case(SUBMIT, test_negative, {
-  snek_object_t *obj = new_snek_float(-5.0);
-
-  assert_float(obj->kind, ==, FLOAT, "Must set type to FLOAT");
-  assert_float(obj->data.v_float, ==, -5.0, "Must accept negative numbers");
-
+  // Free the string, and then free the object.
+  free(obj->data.v_string);
   free(obj);
   assert(boot_all_freed());
 });
 
 int main() {
   MunitTest tests[] = {
-      munit_test("/positive", test_positive),
-      munit_test("/zero", test_zero),
-      munit_test("/negative", test_negative),
+      munit_test("/copies_value", test_str_copied),
       munit_null_test,
   };
 
-  MunitSuite suite = munit_suite("object-float", tests);
+  MunitSuite suite = munit_suite("object-string", tests);
 
   return munit_suite_main(&suite, NULL, 0, NULL);
 }
