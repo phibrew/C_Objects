@@ -46,9 +46,7 @@ snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y, snek_object_
 	if(!vector_object) return NULL;
 
 	vector_object->kind = VECTOR3;
-	vector_object->data.v_vector3.x = x;
-	vector_object->data.v_vector3.y = y;
-	vector_object->data.v_vector3.z = z;
+	vector_object->data.v_vector3 = (snek_vector_t){.x=x, .y=y, .z=z};
 
 	return vector_object;
 }
