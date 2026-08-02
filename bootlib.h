@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 #include "munit.h"
 
 // 1. Mock the RUN/SUBMIT flags
@@ -30,6 +31,5 @@ static MunitResult name(const MunitParameter params[], void* data) { \
 #define assert_null(ptr, msg) munit_assert_null(ptr)
 // Translates the Boot.dev suite builder
 #define munit_suite(name, tests) { (char*)name, tests, NULL, 1, MUNIT_SUITE_OPTION_NONE }
-
 
 #endif
