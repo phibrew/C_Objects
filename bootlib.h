@@ -31,6 +31,7 @@ static MunitResult name(const MunitParameter params[], void* data) { \
 #define assert_null(ptr, msg) munit_assert_null(ptr)
 #define assert_ptr_not_equal(a, b, msg) munit_assert_ptr_not_equal(a, b)
 #define assert_ptr(a, op, b, msg) munit_assert_ptr(a, op, b)
+#define assert_ptr_null(ptr, msg) munit_assert_null(ptr)
 
 #define assert_float(a, op, b, msg) munit_assert_double(a, op, b)
 #define assert_float_equal(a, b, msg) munit_assert_double_equal(a, ==, b)
@@ -59,6 +60,19 @@ static inline void boot_free(void *ptr){
     free(real_ptr);
 }
 
+static inline void *boot_calloc(size_t count, size_t size){
+    size_t tot_size = size*count;
+
+    void *ptr = boot_malloc(tot_size);
+    if(!ptr) return NULL;
+
+    char *c = (char*)ptr;
+    for(size_t i = 0; i<tot_size; ++i, c+=1){
+        *c = 0;
+    }
+    return ptr;
+}
+
 static inline bool boot_all_freed() {
     return _boot_allocated_bytes == 0;
 }
@@ -69,4 +83,5 @@ static inline int boot_alloc_size() {
 
 #define malloc boot_malloc
 #define free boot_free
+#define calloc boot_calloc
 #endif

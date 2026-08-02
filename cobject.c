@@ -50,3 +50,19 @@ snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y, snek_object_
 
 	return vector_object;
 }
+
+snek_object_t *new_snek_array(size_t size){
+	snek_object_t *array_object = malloc(sizeof(snek_object_t));
+	if(array_object == NULL) return NULL;
+
+	snek_object_t **arr = calloc(size, sizeof(snek_object_t*));
+	if(!arr){
+		free(array_object);
+		return NULL;
+	}
+
+	array_object->kind = ARRAY;
+	array_object->data.v_array = (snek_array_t){.size = size, .elements = arr};
+
+	return array_object;
+}
