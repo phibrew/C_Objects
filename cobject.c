@@ -3,8 +3,16 @@
 #include <string.h>
 #include "bootlib.h"
 
+snek_object_t *_new_snek_object() {
+	snek_object_t *new_object = calloc(1, sizeof(snek_object_t));
+	if(!new_object) return NULL;
+
+	new_object->refcount = 1;
+	return new_object;
+}
+
 snek_object_t *new_snek_integer(int value) {
-	snek_object_t *int_object = malloc(sizeof(snek_object_t));
+	snek_object_t *int_object = _new_snek_object();
 	if(!int_object) return NULL;
 
 	int_object->kind = INTEGER;
@@ -13,7 +21,7 @@ snek_object_t *new_snek_integer(int value) {
 }
 
 snek_object_t *new_snek_float(float value){
-	snek_object_t *float_object = malloc(sizeof(snek_object_t));
+	snek_object_t *float_object = _new_snek_object();
 	if(!float_object) return NULL;
 
 	float_object->kind = FLOAT;
@@ -22,7 +30,7 @@ snek_object_t *new_snek_float(float value){
 }	
 
 snek_object_t *new_snek_string(char *value){
-	snek_object_t *string_object = malloc(sizeof(snek_object_t));
+	snek_object_t *string_object = _new_snek_object();
 	if(!string_object) return NULL;
 
 	size_t len = strlen(value);
@@ -42,7 +50,7 @@ snek_object_t *new_snek_string(char *value){
 snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y, snek_object_t *z){
 	if(!x || !y || !z) return NULL;
 
-	snek_object_t *vector_object = malloc(sizeof(snek_object_t));
+	snek_object_t *vector_object = _new_snek_object();
 	if(!vector_object) return NULL;
 
 	vector_object->kind = VECTOR3;
@@ -52,7 +60,7 @@ snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y, snek_object_
 }
 
 snek_object_t *new_snek_array(size_t size){
-	snek_object_t *array_object = malloc(sizeof(snek_object_t));
+	snek_object_t *array_object = _new_snek_object();
 	if(array_object == NULL) return NULL;
 
 	snek_object_t **arr = calloc(size, sizeof(snek_object_t*));
