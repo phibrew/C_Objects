@@ -52,3 +52,5 @@ int snek_length(snek_object_t *obj);
 snek_object_t *snek_add(snek_object_t *a, snek_object_t *b);
 
 void refcount_inc(snek_object_t *obj);
+void refcount_dec(snek_object_t *obj);
+void refcount_free(snek_object_t *obj);

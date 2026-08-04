@@ -3,6 +3,29 @@
 #include <string.h>
 #include "bootlib.h"
 
+void refcount_dec(snek_object_t *obj) {
+	if(obj == NULL) return;
+	obj->refcount -=1;
+	if(obj->refcount == 0) refcount_free(obj);
+}
+
+void refcount_inc(snek_object_t *obj) {
+	if(obj == NULL) return;
+	obj->refcount +=1;
+}
+
+void refcount_free(snek_object_t *obj){
+	if(obj->kind == INTEGER || obj->kind == FLOAT){
+		free(obj);
+		return;
+	}
+	if(obj->kind == STRING){
+		free(obj->data.v_string);
+		free(obj);
+		return;
+	}
+}
+
 snek_object_t *_new_snek_object() {
 	snek_object_t *new_object = calloc(1, sizeof(snek_object_t));
 	if(!new_object) return NULL;

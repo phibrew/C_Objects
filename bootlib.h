@@ -59,7 +59,15 @@ static inline void boot_free(void *ptr){
     void *real_ptr = (char*)ptr - sizeof(size_t);
 
     _boot_allocated_bytes -= *(size_t*)real_ptr;
-    free(real_ptr);
+    *(size_t*) real_ptr = 0xDEADBEEF;
+    // free(real_ptr);
+}
+
+static inline bool boot_is_freed(void *ptr){
+    if(!ptr) return NULL;
+
+    void *real_ptr = (char*)ptr - sizeof(size_t);
+    return *(size_t*)real_ptr == 0xDEADBEEF;
 }
 
 static inline void *boot_calloc(size_t count, size_t size){
