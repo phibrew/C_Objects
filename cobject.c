@@ -15,15 +15,26 @@ void refcount_inc(snek_object_t *obj) {
 }
 
 void refcount_free(snek_object_t *obj){
-	if(obj->kind == INTEGER || obj->kind == FLOAT){
-		free(obj);
-		return;
-	}
-	if(obj->kind == STRING){
+	switch(obj->kind){
+	case INTEGER:
+		break;
+	case FLOAT:
+		break;
+
+	case STRING:
 		free(obj->data.v_string);
-		free(obj);
-		return;
+		break;
+
+	case VECTOR3:{
+		refcount_dec(obj->data.v_vector3.x);
+		refcount_dec(obj->data.v_vector3.y);
+		refcount_dec(obj->data.v_vector3.z);
+		break;		
 	}
+	default:
+		assert(false);
+	}
+	free(obj);
 }
 
 snek_object_t *_new_snek_object() {
@@ -78,7 +89,7 @@ snek_object_t *new_snek_vector3(snek_object_t *x, snek_object_t *y, snek_object_
 
 	vector_object->kind = VECTOR3;
 	vector_object->data.v_vector3 = (snek_vector_t){.x=x, .y=y, .z=z};
-
+	refcount_inc(x); refcount_inc(y); refcount_inc(z);
 	return vector_object;
 }
 
@@ -128,7 +139,8 @@ int snek_length(snek_object_t *obj){
 snek_object_t *snek_add(snek_object_t *a, snek_object_t *b){
 	if(!a || !b) return NULL;
 
-	if(a->kind == INTEGER){
+	switch(a->kind){
+	case INTEGER:{
 		if(b->kind == INTEGER){
 			snek_object_t *new_integer = new_snek_integer(a->data.v_int + b->data.v_int);
 			return new_integer;
@@ -140,7 +152,7 @@ snek_object_t *snek_add(snek_object_t *a, snek_object_t *b){
 		return NULL;
 	}
 
-	if(a->kind == FLOAT){
+	case FLOAT:{
 		if(b->kind == FLOAT || b->kind == INTEGER){
 			snek_object_t *new_float = new_snek_float(a->data.v_float);
 			
@@ -155,7 +167,7 @@ snek_object_t *snek_add(snek_object_t *a, snek_object_t *b){
 		return NULL;
 	}
 
-	if(a->kind == STRING){
+	case STRING:{
 		if(b->kind != STRING){
 			return NULL;
 		}
@@ -173,7 +185,7 @@ snek_object_t *snek_add(snek_object_t *a, snek_object_t *b){
 		return new_string;
 	}
 
-	if(a->kind == VECTOR3){
+	case VECTOR3:{
 		if(b->kind != VECTOR3) return NULL;
 		snek_object_t *new_vector = new_snek_vector3(
 			snek_add(a->data.v_vector3.x, b->data.v_vector3.x), 
@@ -183,7 +195,7 @@ snek_object_t *snek_add(snek_object_t *a, snek_object_t *b){
 		return new_vector;
 	}
 
-	if(a->kind == ARRAY){
+	case ARRAY:{
 		if(b->kind != ARRAY) return NULL;
 
 		snek_object_t *new_array = new_snek_array(a->data.v_array.size + b->data.v_array.size);
@@ -203,6 +215,9 @@ snek_object_t *snek_add(snek_object_t *a, snek_object_t *b){
 			}
 		}
 		return new_array;
+	}
+	default:
+		break;
 	}
 	return NULL;
 }

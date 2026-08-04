@@ -4,6 +4,50 @@
 
 size_t _boot_allocated_bytes = 0;
 
+munit_case(RUN, test_vector3_refcounting, {
+  snek_object_t *foo = new_snek_integer(1);
+  snek_object_t *bar = new_snek_integer(2);
+  snek_object_t *baz = new_snek_integer(3);
+
+  snek_object_t *vec = new_snek_vector3(foo, bar, baz);
+  assert_int(foo->refcount, ==, 2, "foo is now referenced by vec");
+  assert_int(bar->refcount, ==, 2, "bar is now referenced by vec");
+  assert_int(baz->refcount, ==, 2, "baz is now referenced by vec");
+
+  // `foo` is stil referenced in the `vec`, so it should not be freed.
+  refcount_dec(foo);
+  assert(!boot_is_freed(foo));
+
+  refcount_dec(vec);
+  assert(boot_is_freed(foo));
+
+  // These are still alive, they have the original reference still.
+  assert(!boot_is_freed(bar));
+  assert(!boot_is_freed(baz));
+
+  // Decrement the last reference to the objects, so they will be freed.
+  refcount_dec(bar);
+  refcount_dec(baz);
+
+  assert(boot_all_freed());
+});
+
+munit_case(SUBMIT, test_vector3_refcounting_same, {
+  snek_object_t *foo = new_snek_integer(1);
+
+  snek_object_t *vec = new_snek_vector3(foo, foo, foo);
+  assert_int(foo->refcount, ==, 4, "foo is now referenced by vec x3");
+
+  // `foo` is stil referenced in the `vec`, so it should not be freed.
+  refcount_dec(foo);
+  assert(!boot_is_freed(foo));
+
+  refcount_dec(vec);
+  assert(boot_is_freed(foo));
+  assert(boot_is_freed(vec));
+  assert(boot_all_freed());
+});
+
 munit_case(RUN, test_int_has_refcount, {
   snek_object_t *obj = new_snek_integer(10);
   assert_int(obj->refcount, ==, 1, "Refcount should be 1 on creation");
@@ -36,7 +80,7 @@ munit_case(RUN, test_dec_refcount, {
   free(obj);
 });
 
-munit_case(SUBMIT, test_refcount_free_is_called, {
+munit_case(RUN, test_refcount_free_is_called, {
   snek_object_t *obj = new_snek_float(4.20);
 
   refcount_inc(obj);
@@ -50,7 +94,7 @@ munit_case(SUBMIT, test_refcount_free_is_called, {
   assert(boot_all_freed());
 });
 
-munit_case(SUBMIT, test_allocated_string_is_freed, {
+munit_case(RUN, test_allocated_string_is_freed, {
   snek_object_t *obj = new_snek_string("Hello @wagslane!");
 
   refcount_inc(obj);
@@ -72,6 +116,8 @@ int main() {
       munit_test("/dec_refcount", test_dec_refcount),
       munit_test("/free_refcount", test_refcount_free_is_called),
       munit_test("/string_freed", test_allocated_string_is_freed),
+      munit_test("/vector3", test_vector3_refcounting),
+      munit_test("/vector3-same", test_vector3_refcounting_same),
       munit_null_test,
   };
 
