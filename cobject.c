@@ -93,3 +93,85 @@ int snek_length(snek_object_t *obj){
 
 	return -1;
 }	
+
+snek_object_t *snek_add(snek_object_t *a, snek_object_t *b){
+	if(!a || !b) return NULL;
+
+	if(a->kind == INTEGER){
+		if(b->kind == INTEGER){
+			snek_object_t *new_integer = new_snek_integer(a->data.v_int + b->data.v_int);
+			return new_integer;
+		}
+		if(b->kind == FLOAT){
+			snek_object_t *new_float = new_snek_float( a->data.v_int + b->data.v_float);
+			return new_float;
+		}
+		return NULL;
+	}
+
+	if(a->kind == FLOAT){
+		if(b->kind == FLOAT || b->kind == INTEGER){
+			snek_object_t *new_float = new_snek_float(a->data.v_float);
+			
+			if(b->kind == FLOAT){
+				new_float->data.v_float += b->data.v_float;
+			} else {
+				new_float->data.v_float += b->data.v_int;
+			}
+
+			return new_float;
+		}
+		return NULL;
+	}
+
+	if(a->kind == STRING){
+		if(b->kind != STRING){
+			return NULL;
+		}
+
+		size_t size = strlen(a->data.v_string) + strlen(b->data.v_string) + 1;
+
+		char *temp_string = (char*)calloc(size, sizeof(char));
+		if(!temp_string) return NULL;
+
+		strcat(temp_string, a->data.v_string);
+		strcat(temp_string, b->data.v_string);
+
+		snek_object_t *new_string = new_snek_string(temp_string);
+		free(temp_string);
+		return new_string;
+	}
+
+	if(a->kind == VECTOR3){
+		if(b->kind != VECTOR3) return NULL;
+		snek_object_t *new_vector = new_snek_vector3(
+			snek_add(a->data.v_vector3.x, b->data.v_vector3.x), 
+			snek_add(a->data.v_vector3.y, b->data.v_vector3.y),
+			snek_add(a->data.v_vector3.z, b->data.v_vector3.z));
+
+		return new_vector;
+	}
+
+	if(a->kind == ARRAY){
+		if(b->kind != ARRAY) return NULL;
+
+		snek_object_t *new_array = new_snek_array(a->data.v_array.size + b->data.v_array.size);
+		for(size_t i = 0; i<a->data.v_array.size; ++i){
+			bool res = snek_array_set(new_array, i, snek_array_get(a, i));
+			if(res == false){
+				free(new_array);
+				return NULL;
+			}
+		}
+		for(size_t i = 0, j = a->data.v_array.size; 
+			i<b->data.v_array.size && j<new_array->data.v_array.size ; ++i, ++j){
+			bool res = snek_array_set(new_array, j, snek_array_get(b, i));
+			if(res == false){
+				free(new_array);
+				return NULL;
+			}
+		}
+		return new_array;
+	}
+	return NULL;
+}
