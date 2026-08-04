@@ -31,6 +31,14 @@ void refcount_free(snek_object_t *obj){
 		refcount_dec(obj->data.v_vector3.z);
 		break;		
 	}
+
+	case ARRAY: {
+		for(size_t i = 0; i<obj->data.v_array.size; ++i){
+			refcount_dec(obj->data.v_array.elements[i]);
+		}
+		free(obj->data.v_array.elements);
+		break;
+	}
 	default:
 		assert(false);
 	}
@@ -114,7 +122,9 @@ bool snek_array_set(snek_object_t *array, size_t index, snek_object_t *value){
 	if(array->kind != ARRAY) return false;
 	if(index >= array->data.v_array.size) return false;
 
+	refcount_dec(array->data.v_array.elements[index]);
 	array->data.v_array.elements[index] = value;
+	refcount_inc(value);
 	return true;
 }
 
